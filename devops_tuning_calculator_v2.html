@@ -1,0 +1,495 @@
+<style>
+.form-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 20px; margin-bottom: 16px; }
+.form-group { margin-bottom: 18px; }
+.form-group:last-child { margin-bottom: 0; }
+.form-group-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); margin: 0 0 10px; display: flex; align-items: center; gap: 6px; }
+.form-group-title i { font-size: 13px; }
+.fr { display: grid; grid-template-columns: 150px 1fr 80px; align-items: center; gap: 14px; margin-bottom: 8px; }
+.fr:last-child { margin-bottom: 0; }
+.fr label { font-size: 13px; color: var(--color-text-secondary); }
+.fr .v { font-size: 13px; font-weight: 500; text-align: right; color: var(--color-text-primary); }
+.fr select { grid-column: 2 / 4; }
+.ra-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px 20px; margin-bottom: 16px; }
+.ra-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); margin: 0 0 12px; }
+.ra-bar { display: flex; height: 28px; border-radius: var(--border-radius-md); overflow: hidden; background: var(--color-background-tertiary); }
+.ra-seg { transition: width 0.2s ease; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: white; min-width: 0; overflow: hidden; white-space: nowrap; }
+.ra-seg.sys { background: #5F5E5A; }
+.ra-seg.db { background: #BA7517; }
+.ra-seg.php { background: #534AB7; }
+.ra-seg.free { background: var(--color-background-tertiary); color: var(--color-text-tertiary); }
+.ra-leg { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--color-text-secondary); }
+.ra-leg span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.dot.sys { background: #5F5E5A; }
+.dot.db { background: #BA7517; }
+.dot.php { background: #534AB7; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.stat-icon i { font-size: 16px; }
+.stat-body { min-width: 0; flex: 1; }
+.stat-l { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 2px; }
+.stat-n { font-size: 17px; font-weight: 500; line-height: 1.1; }
+.stat-icon.purple { background: rgba(127,119,221,0.15); color: #7F77DD; }
+.stat-icon.blue { background: rgba(55,138,221,0.15); color: var(--color-text-info); }
+.stat-icon.teal { background: rgba(29,158,117,0.15); color: var(--color-text-success); }
+.stat-icon.amber { background: rgba(186,117,23,0.15); color: var(--color-text-warning); }
+.stat-icon.coral { background: rgba(216,90,48,0.15); color: #D85A30; }
+.stat-icon.gray { background: rgba(136,135,128,0.15); color: var(--color-text-secondary); }
+.cfg-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); margin-bottom: 12px; overflow: hidden; }
+.cfg-hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.cfg-hdr-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.cfg-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cfg-icon i { font-size: 15px; }
+.cfg-icon.gray { background: rgba(136,135,128,0.15); color: var(--color-text-secondary); }
+.cfg-icon.blue { background: rgba(55,138,221,0.15); color: var(--color-text-info); }
+.cfg-icon.purple { background: rgba(127,119,221,0.15); color: #7F77DD; }
+.cfg-icon.teal { background: rgba(29,158,117,0.15); color: var(--color-text-success); }
+.cfg-icon.amber { background: rgba(186,117,23,0.15); color: var(--color-text-warning); }
+.cfg-title { font-size: 13px; font-weight: 500; }
+.cfg-sub { font-size: 11px; color: var(--color-text-secondary); font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cfg-btn { font-size: 12px; padding: 5px 10px; cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
+.cfg-btn i { font-size: 13px; }
+.cfg-body { font-family: var(--font-mono); font-size: 12px; padding: 14px 16px; overflow-x: auto; line-height: 1.6; white-space: pre; margin: 0; color: var(--color-text-primary); }
+.cfg-body .cm { color: var(--color-text-tertiary); }
+.cfg-body .num { color: var(--color-text-info); font-weight: 500; }
+.cfg-body .str { color: var(--color-text-success); }
+.cfg-note { font-size: 12px; color: var(--color-text-secondary); padding: 10px 16px 14px; line-height: 1.55; border-top: 0.5px dashed var(--color-border-tertiary); background: var(--color-background-secondary); }
+.cfg-note code { background: var(--color-background-tertiary); padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+.master-btn { width: 100%; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.master-btn i { font-size: 16px; }
+.warn-bar { background: var(--color-background-warning); color: var(--color-text-warning); font-size: 12px; padding: 8px 14px; border-radius: var(--border-radius-md); margin-bottom: 12px; display: none; align-items: center; gap: 8px; }
+.warn-bar.show { display: flex; }
+</style>
+
+<h2 class="sr-only">Calculateur de paramètres de tuning DevOps pour serveur web Debian</h2>
+
+<div class="form-card">
+  <div class="form-group">
+    <div class="form-group-title"><i class="ti ti-server" aria-hidden="true"></i> Matériel</div>
+    <div class="fr"><label for="ram">RAM totale</label><input type="range" id="ram" min="2" max="256" value="16" step="1" /><span class="v"><span id="ram-o">16</span> Go</span></div>
+    <div class="fr"><label for="cpu">Cœurs CPU</label><input type="range" id="cpu" min="1" max="64" value="4" step="1" /><span class="v" id="cpu-o">4</span></div>
+    <div class="fr"><label for="disk">Stockage</label><select id="disk"><option value="nvme">NVMe</option><option value="ssd">SSD SATA</option><option value="hdd">HDD</option></select></div>
+  </div>
+
+  <div class="form-group">
+    <div class="form-group-title"><i class="ti ti-code" aria-hidden="true"></i> Application</div>
+    <div class="fr"><label for="workload">Workload</label><select id="workload"><option value="wordpress">WordPress (I/O bound)</option><option value="laravel">Laravel</option><option value="mixed">PHP mixte (WP + Laravel)</option><option value="nodejs">Node.js dominant</option></select></div>
+    <div class="fr"><label for="phpver">Version PHP</label><select id="phpver"><option value="8.2">8.2</option><option value="8.3" selected>8.3</option><option value="8.4">8.4</option></select></div>
+    <div class="fr"><label for="phpsize">Process PHP-FPM moy.</label><input type="range" id="phpsize" min="40" max="200" value="80" step="10" /><span class="v"><span id="phpsize-o">80</span> Mo</span></div>
+  </div>
+
+  <div class="form-group">
+    <div class="form-group-title"><i class="ti ti-database" aria-hidden="true"></i> Base de données</div>
+    <div class="fr"><label for="dbshare">RAM allouée à MariaDB</label><select id="dbshare"><option value="0">0% — DB externe</option><option value="30">30% — DB légère</option><option value="40" selected>40% — équilibré</option><option value="50">50% — DB lourde</option><option value="65">65% — DB dédiée</option></select></div>
+  </div>
+</div>
+
+<div class="warn-bar" id="warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i> <span id="warn-msg"></span></div>
+
+<div class="ra-card">
+  <div class="ra-title">Répartition de la RAM</div>
+  <div class="ra-bar" id="ra-bar"></div>
+  <div class="ra-leg" id="ra-leg"></div>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div class="cfg-card">
+  <div class="cfg-hdr">
+    <div class="cfg-hdr-left">
+      <div class="cfg-icon gray"><i class="ti ti-cpu" aria-hidden="true"></i></div>
+      <div>
+        <div class="cfg-title">Kernel</div>
+        <div class="cfg-sub">/etc/sysctl.d/99-webserver.conf</div>
+      </div>
+    </div>
+    <button class="cfg-btn" data-c="c-sysctl"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button>
+  </div>
+  <pre class="cfg-body" id="c-sysctl"></pre>
+  <div class="cfg-note">Appliquer avec <code>sysctl --system</code>. BBR + fq : à valider sous charge, certains cas préfèrent cubic.</div>
+</div>
+
+<div class="cfg-card">
+  <div class="cfg-hdr">
+    <div class="cfg-hdr-left">
+      <div class="cfg-icon blue"><i class="ti ti-world-www" aria-hidden="true"></i></div>
+      <div>
+        <div class="cfg-title">Apache MPM event</div>
+        <div class="cfg-sub">/etc/apache2/mods-available/mpm_event.conf</div>
+      </div>
+    </div>
+    <button class="cfg-btn" data-c="c-apache"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button>
+  </div>
+  <pre class="cfg-body" id="c-apache"></pre>
+  <div class="cfg-note">Capacité simultanée = (AsyncRequestWorkerFactor + 1) × MaxRequestWorkers. ServerLimit dimensionne le scoreboard, ThreadsPerChild le nb de threads par process.</div>
+</div>
+
+<div class="cfg-card">
+  <div class="cfg-hdr">
+    <div class="cfg-hdr-left">
+      <div class="cfg-icon purple"><i class="ti ti-bolt" aria-hidden="true"></i></div>
+      <div>
+        <div class="cfg-title">PHP-FPM pool</div>
+        <div class="cfg-sub">/etc/php/X.X/fpm/pool.d/www.conf</div>
+      </div>
+    </div>
+    <button class="cfg-btn" data-c="c-phpfpm"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button>
+  </div>
+  <pre class="cfg-body" id="c-phpfpm"></pre>
+  <div class="cfg-note">pm.max_children = RAM_PHP / taille_process. Mesurer en charge : <code>ps --no-headers -o "rss,cmd" -C php-fpm8.3 | awk '{s+=$1} END {print s/NR/1024" Mo"}'</code></div>
+</div>
+
+<div class="cfg-card">
+  <div class="cfg-hdr">
+    <div class="cfg-hdr-left">
+      <div class="cfg-icon teal"><i class="ti ti-flame" aria-hidden="true"></i></div>
+      <div>
+        <div class="cfg-title">OPcache + APCu</div>
+        <div class="cfg-sub">/etc/php/X.X/fpm/conf.d/10-opcache.ini</div>
+      </div>
+    </div>
+    <button class="cfg-btn" data-c="c-opcache"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button>
+  </div>
+  <pre class="cfg-body" id="c-opcache"></pre>
+  <div class="cfg-note" id="opcache-note"></div>
+</div>
+
+<div class="cfg-card">
+  <div class="cfg-hdr">
+    <div class="cfg-hdr-left">
+      <div class="cfg-icon amber"><i class="ti ti-database" aria-hidden="true"></i></div>
+      <div>
+        <div class="cfg-title">MariaDB / InnoDB</div>
+        <div class="cfg-sub">/etc/mysql/mariadb.conf.d/99-tuning.cnf</div>
+      </div>
+    </div>
+    <button class="cfg-btn" data-c="c-maria"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button>
+  </div>
+  <pre class="cfg-body" id="c-maria"></pre>
+  <div class="cfg-note">innodb_buffer_pool_size = RAM allouée à la DB. MariaDB ≥ 10.6 ignore innodb_buffer_pool_instances. io_capacity adapté au type de stockage.</div>
+</div>
+
+<button class="master-btn" id="copy-all"><i class="ti ti-copy" aria-hidden="true"></i> Copier toute la configuration</button>
+
+<script>
+function r(n) { return Math.round(n); }
+function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function hi(cfg) {
+  return esc(cfg)
+    .replace(/^([ \t]*[#;].*)$/gm, '<span class="cm">$1</span>')
+    .replace(/(=\s*)([0-9][A-Za-z0-9._\-]*)/g, '$1<span class="num">$2</span>')
+    .replace(/(\s)(O_DIRECT|utf8mb4(?:_unicode_ci)?|bbr|fq|dynamic|tracing|disable|On|Off|Prod)\b/g, '$1<span class="str">$2</span>');
+}
+
+let lastCfgs = {};
+
+function update() {
+  const ram = +document.getElementById('ram').value;
+  const cpu = +document.getElementById('cpu').value;
+  const disk = document.getElementById('disk').value;
+  const workload = document.getElementById('workload').value;
+  const dbshare = +document.getElementById('dbshare').value;
+  const phpsize = +document.getElementById('phpsize').value;
+  const phpver = document.getElementById('phpver').value;
+
+  document.getElementById('ram-o').textContent = ram;
+  document.getElementById('cpu-o').textContent = cpu;
+  document.getElementById('phpsize-o').textContent = phpsize;
+
+  const totalMB = ram * 1024;
+  const sysReserve = Math.max(1024, r(totalMB * 0.1));
+  const dbMB = r(totalMB * dbshare / 100);
+  const phpMB = Math.max(512, totalMB - sysReserve - dbMB);
+
+  const maxChildren = Math.max(5, Math.floor(phpMB / phpsize));
+  const startServers = Math.max(2, r(maxChildren * 0.2));
+  const minSpare = Math.max(2, r(maxChildren * 0.1));
+  const maxSpare = Math.max(4, r(maxChildren * 0.3));
+
+  const tpc = 25;
+  const targetWorkers = Math.max(100, maxChildren);
+  const serverLimit = Math.ceil(targetWorkers / tpc);
+  const maxWorkers = serverLimit * tpc;
+  const startSrv = Math.max(4, r(cpu / 2));
+
+  const ioCap = disk === 'nvme' ? 3000 : disk === 'ssd' ? 1500 : 200;
+  const ioCapMax = ioCap * 2;
+  const logFile = Math.min(2048, Math.max(256, r(dbMB * 0.25)));
+  const maxConn = Math.min(500, Math.max(100, r(maxChildren * 1.5)));
+  const ioThreads = Math.min(16, Math.max(4, cpu));
+
+  let opMem, opStr, opFiles, jit, jitBuf, opcacheNote;
+  if (workload === 'wordpress') {
+    opMem = 256; opStr = 32; opFiles = 20000; jit = 'disable'; jitBuf = 0;
+    opcacheNote = 'JIT désactivé : WordPress est I/O-bound (BDD, Redis, HTTP). Gain JIT mesuré sur WP : 1 à 5 % seulement.';
+  } else if (workload === 'laravel') {
+    opMem = 384; opStr = 32; opFiles = 30000; jit = 'tracing'; jitBuf = 128;
+    opcacheNote = 'JIT tracing activé : pertinent sur Laravel pour le code applicatif intensif. À benchmarker avant prod.';
+  } else if (workload === 'mixed') {
+    opMem = 512; opStr = 32; opFiles = 40000; jit = 'tracing'; jitBuf = 128;
+    opcacheNote = 'JIT tracing activé. Mémoire OPcache généreuse pour absorber plusieurs apps sans évictions.';
+  } else {
+    opMem = 128; opStr = 16; opFiles = 10000; jit = 'disable'; jitBuf = 0;
+    opcacheNote = 'PHP minimal car workload Node.js dominant. Le vrai tuning se fait côté PM2 et V8.';
+  }
+  opcacheNote += ' validate_timestamps=0 impose un php-fpm reload ou opcache_reset() après chaque deploy.';
+
+  let jitLine;
+  if (phpver === '8.4') {
+    jitLine = `opcache.jit=${jit}\nopcache.jit_buffer_size=${jitBuf}M`;
+  } else {
+    jitLine = `opcache.jit=${jit === 'disable' ? '0' : 'tracing'}\nopcache.jit_buffer_size=${jitBuf}M`;
+  }
+
+  const warn = document.getElementById('warn');
+  const warnMsg = document.getElementById('warn-msg');
+  if (phpMB < 1024) {
+    warn.classList.add('show');
+    warnMsg.textContent = 'RAM disponible pour PHP-FPM très basse. Réduire la part DB ou augmenter la RAM.';
+  } else if (ram < 4) {
+    warn.classList.add('show');
+    warnMsg.textContent = 'RAM totale en dessous des recommandations pour un serveur web LAMP en production.';
+  } else {
+    warn.classList.remove('show');
+  }
+
+  const sysPct = (sysReserve / totalMB * 100);
+  const dbPct = (dbMB / totalMB * 100);
+  const phpPct = (phpMB / totalMB * 100);
+  document.getElementById('ra-bar').innerHTML = `
+    <div class="ra-seg sys" style="width: ${sysPct}%;"></div>
+    ${dbMB > 0 ? `<div class="ra-seg db" style="width: ${dbPct}%;"></div>` : ''}
+    <div class="ra-seg php" style="width: ${phpPct}%;"></div>
+  `;
+  document.getElementById('ra-leg').innerHTML = `
+    <span><span class="dot sys"></span> Système ${(sysReserve/1024).toFixed(1)} Go</span>
+    ${dbMB > 0 ? `<span><span class="dot db"></span> MariaDB ${(dbMB/1024).toFixed(1)} Go</span>` : ''}
+    <span><span class="dot php"></span> PHP-FPM ${(phpMB/1024).toFixed(1)} Go</span>
+  `;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-icon purple"><i class="ti ti-bolt" aria-hidden="true"></i></div><div class="stat-body"><div class="stat-l">PHP workers</div><div class="stat-n">${maxChildren}</div></div></div>
+    <div class="stat"><div class="stat-icon blue"><i class="ti ti-world-www" aria-hidden="true"></i></div><div class="stat-body"><div class="stat-l">Apache workers</div><div class="stat-n">${maxWorkers}</div></div></div>
+    <div class="stat"><div class="stat-icon teal"><i class="ti ti-activity" aria-hidden="true"></i></div><div class="stat-body"><div class="stat-l">Connexions simult.</div><div class="stat-n">${maxWorkers * 3}</div></div></div>
+    <div class="stat"><div class="stat-icon amber"><i class="ti ti-database" aria-hidden="true"></i></div><div class="stat-body"><div class="stat-l">Buffer pool</div><div class="stat-n">${dbMB > 0 ? (dbMB/1024).toFixed(1)+' Go' : '—'}</div></div></div>
+    <div class="stat"><div class="stat-icon coral"><i class="ti ti-rocket" aria-hidden="true"></i></div><div class="stat-body"><div class="stat-l">I/O capacity</div><div class="stat-n">${ioCap}</div></div></div>
+    <div class="stat"><div class="stat-icon gray"><i class="ti ti-users" aria-hidden="true"></i></div><div class="stat-body"><div class="stat-l">DB connexions</div><div class="stat-n">${dbMB > 0 ? maxConn : '—'}</div></div></div>
+  `;
+
+  const sysctl = `# Réseau
+net.core.somaxconn = 65535
+net.core.netdev_max_backlog = 16384
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_fin_timeout = 15
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.ip_local_port_range = 1024 65535
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_intvl = 30
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_slow_start_after_idle = 0
+net.ipv4.tcp_congestion_control = bbr
+net.core.default_qdisc = fq
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+
+# Mémoire
+vm.swappiness = 10
+vm.dirty_ratio = 15
+vm.dirty_background_ratio = 5
+vm.overcommit_memory = 1
+vm.vfs_cache_pressure = 50
+
+# Fichiers
+fs.file-max = ${Math.max(2097152, maxWorkers * 1000)}
+fs.nr_open = 1048576
+fs.inotify.max_user_watches = 524288`;
+
+  const apache = `<IfModule mpm_event_module>
+    StartServers              ${startSrv}
+    ServerLimit               ${serverLimit}
+    ThreadLimit               64
+    ThreadsPerChild           ${tpc}
+    MinSpareThreads           ${tpc}
+    MaxSpareThreads           ${tpc * 3}
+    MaxRequestWorkers         ${maxWorkers}
+    MaxConnectionsPerChild    10000
+    AsyncRequestWorkerFactor  2
+</IfModule>
+
+KeepAlive On
+MaxKeepAliveRequests 1000
+KeepAliveTimeout 5
+Timeout 30
+ServerTokens Prod
+ServerSignature Off
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css \\
+        text/javascript application/javascript application/json image/svg+xml
+    DeflateCompressionLevel 6
+</IfModule>
+
+# HTTP/2
+Protocols h2 h2c http/1.1`;
+
+  const phpfpm = `pm = dynamic
+pm.max_children = ${maxChildren}
+pm.start_servers = ${startServers}
+pm.min_spare_servers = ${minSpare}
+pm.max_spare_servers = ${maxSpare}
+pm.max_requests = 1000
+pm.process_idle_timeout = 30s
+
+pm.status_path = /fpm-status
+ping.path = /fpm-ping
+
+request_slowlog_timeout = 5s
+slowlog = /var/log/php/slowlog-www.log
+request_terminate_timeout = 120s
+
+security.limit_extensions = .php
+
+php_admin_value[memory_limit] = 256M
+php_admin_value[max_execution_time] = 60
+php_admin_value[post_max_size] = 64M
+php_admin_value[upload_max_filesize] = 64M`;
+
+  const opcache = `opcache.enable=1
+opcache.enable_cli=0
+opcache.memory_consumption=${opMem}
+opcache.interned_strings_buffer=${opStr}
+opcache.max_accelerated_files=${opFiles}
+opcache.validate_timestamps=0
+opcache.revalidate_freq=0
+opcache.save_comments=1
+opcache.fast_shutdown=1
+opcache.huge_code_pages=0
+${jitLine}
+
+; APCu
+apc.enabled=1
+apc.shm_size=128M
+apc.ttl=7200
+apc.enable_cli=0
+
+; Realpath cache (à mettre dans php.ini)
+realpath_cache_size=4096K
+realpath_cache_ttl=600`;
+
+  let maria;
+  if (dbshare > 0) {
+    maria = `[mysqld]
+# === Connexions ===
+max_connections = ${maxConn}
+thread_cache_size = ${r(maxConn / 4)}
+back_log = 500
+wait_timeout = 300
+interactive_timeout = 300
+max_allowed_packet = 64M
+
+# === InnoDB cœur ===
+innodb_buffer_pool_size = ${dbMB}M
+innodb_log_file_size = ${logFile}M
+innodb_log_buffer_size = 64M
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+innodb_file_per_table = 1
+innodb_open_files = 4000
+
+# === I/O (${disk.toUpperCase()}) ===
+innodb_io_capacity = ${ioCap}
+innodb_io_capacity_max = ${ioCapMax}
+innodb_read_io_threads = ${ioThreads}
+innodb_write_io_threads = ${ioThreads}
+innodb_thread_concurrency = 0
+innodb_flush_neighbors = ${disk === 'hdd' ? 1 : 0}
+innodb_lru_scan_depth = 1024
+
+# === Tables temp & cache ===
+table_open_cache = 4000
+table_definition_cache = 2000
+tmp_table_size = 64M
+max_heap_table_size = 64M
+join_buffer_size = 4M
+sort_buffer_size = 4M
+
+# === Query cache désactivé ===
+query_cache_type = 0
+query_cache_size = 0
+
+# === Charset ===
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# === Slow log ===
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time = 1
+log_error = /var/log/mysql/error.log`;
+  } else {
+    maria = '# DB externe : pas de tuning local.\n# Configurer le serveur dédié séparément.';
+  }
+
+  lastCfgs = { sysctl, apache, phpfpm, opcache, maria };
+
+  document.getElementById('c-sysctl').innerHTML = hi(sysctl);
+  document.getElementById('c-apache').innerHTML = hi(apache);
+  document.getElementById('c-phpfpm').innerHTML = hi(phpfpm);
+  document.getElementById('c-opcache').innerHTML = hi(opcache);
+  document.getElementById('c-maria').innerHTML = hi(maria);
+  document.getElementById('opcache-note').textContent = opcacheNote;
+}
+
+document.querySelectorAll('input, select').forEach(el => {
+  el.addEventListener('input', update);
+});
+
+function copyTo(btn, text) {
+  navigator.clipboard.writeText(text);
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Copié';
+  setTimeout(() => { btn.innerHTML = orig; }, 1500);
+}
+
+document.querySelectorAll('button[data-c]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.c;
+    const txt = document.getElementById(id).textContent;
+    copyTo(btn, txt);
+  });
+});
+
+document.getElementById('copy-all').addEventListener('click', (e) => {
+  const all = `# ============================================
+# /etc/sysctl.d/99-webserver.conf
+# ============================================
+${lastCfgs.sysctl}
+
+# ============================================
+# /etc/apache2/mods-available/mpm_event.conf
+# ============================================
+${lastCfgs.apache}
+
+# ============================================
+# /etc/php/X.X/fpm/pool.d/www.conf
+# ============================================
+${lastCfgs.phpfpm}
+
+# ============================================
+# /etc/php/X.X/fpm/conf.d/10-opcache.ini
+# ============================================
+${lastCfgs.opcache}
+
+# ============================================
+# /etc/mysql/mariadb.conf.d/99-tuning.cnf
+# ============================================
+${lastCfgs.maria}`;
+  copyTo(e.currentTarget, all);
+});
+
+update();
+</script>

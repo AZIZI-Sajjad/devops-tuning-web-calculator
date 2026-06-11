@@ -1,0 +1,307 @@
+<style>
+.row { display: grid; grid-template-columns: 160px 1fr 70px; align-items: center; gap: 12px; margin-bottom: 10px; }
+.row label { font-size: 13px; color: var(--color-text-secondary); }
+.row .v { font-size: 13px; font-weight: 500; text-align: right; }
+.row select { grid-column: 2 / 4; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px 20px; margin-bottom: 14px; }
+.hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.hdr h3 { font-size: 14px; font-weight: 500; margin: 0; font-family: var(--font-mono); color: var(--color-text-primary); }
+.hdr button { font-size: 12px; padding: 4px 10px; cursor: pointer; }
+.cfg { font-family: var(--font-mono); font-size: 12px; background: var(--color-background-tertiary); padding: 12px; border-radius: var(--border-radius-md); overflow-x: auto; line-height: 1.55; white-space: pre; margin: 0; color: var(--color-text-primary); }
+.sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; }
+.stat .l { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px; }
+.stat .n { font-size: 18px; font-weight: 500; }
+.note { font-size: 12px; color: var(--color-text-secondary); margin-top: 8px; line-height: 1.5; }
+.warn { background: var(--color-background-warning); color: var(--color-text-warning); font-size: 12px; padding: 6px 10px; border-radius: var(--border-radius-md); margin-top: 8px; }
+</style>
+
+<h2 class="sr-only">Calculateur de paramètres de tuning DevOps pour serveur web Debian</h2>
+
+<div class="card">
+  <div class="row"><label for="ram">RAM totale</label><input type="range" id="ram" min="2" max="256" value="16" step="1" /><span class="v"><span id="ram-o">16</span> Go</span></div>
+  <div class="row"><label for="cpu">Cœurs CPU</label><input type="range" id="cpu" min="1" max="64" value="4" step="1" /><span class="v" id="cpu-o">4</span></div>
+  <div class="row"><label for="disk">Stockage</label><select id="disk"><option value="nvme">NVMe</option><option value="ssd">SSD SATA</option><option value="hdd">HDD</option></select></div>
+  <div class="row"><label for="workload">Workload</label><select id="workload"><option value="wordpress">WordPress (I/O bound)</option><option value="laravel">Laravel</option><option value="mixed">PHP mixte (WP + Laravel)</option><option value="nodejs">Node.js dominant</option></select></div>
+  <div class="row"><label for="dbshare">RAM allouée à MariaDB</label><select id="dbshare"><option value="0">0% — DB externe</option><option value="30">30% — DB légère</option><option value="40" selected>40% — équilibré</option><option value="50">50% — DB lourde</option><option value="65">65% — DB dédiée</option></select></div>
+  <div class="row"><label for="phpsize">Process PHP-FPM moy.</label><input type="range" id="phpsize" min="40" max="200" value="80" step="10" /><span class="v"><span id="phpsize-o">80</span> Mo</span></div>
+  <div class="row"><label for="phpver">Version PHP</label><select id="phpver"><option value="8.2">8.2</option><option value="8.3" selected>8.3</option><option value="8.4">8.4</option></select></div>
+</div>
+
+<div class="sum" id="sum"></div>
+
+<div class="card">
+  <div class="hdr"><h3>/etc/sysctl.d/99-webserver.conf</h3><button data-c="c-sysctl"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button></div>
+  <pre class="cfg" id="c-sysctl"></pre>
+  <div class="note">Appliquer avec <code>sysctl --system</code>. BBR + fq : valider sous charge réelle, certains cas préfèrent cubic.</div>
+</div>
+
+<div class="card">
+  <div class="hdr"><h3>/etc/apache2/mods-available/mpm_event.conf</h3><button data-c="c-apache"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button></div>
+  <pre class="cfg" id="c-apache"></pre>
+  <div class="note">Capacité max simultanée = (AsyncRequestWorkerFactor + 1) × MaxRequestWorkers = 3 × MaxRequestWorkers. ServerLimit calculé pour absorber les processus en graceful close.</div>
+</div>
+
+<div class="card">
+  <div class="hdr"><h3>/etc/php/X.X/fpm/pool.d/www.conf</h3><button data-c="c-phpfpm"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button></div>
+  <pre class="cfg" id="c-phpfpm"></pre>
+  <div class="note">pm.max_children = (RAM_dispo_PHP) / taille_moyenne_process. Mesurer la taille réelle sous charge avec <code>ps --no-headers -o "rss,cmd" -C php-fpm | awk '{s+=$1} END {print s/NR/1024" Mo"}'</code>.</div>
+</div>
+
+<div class="card">
+  <div class="hdr"><h3>/etc/php/X.X/fpm/conf.d/10-opcache.ini</h3><button data-c="c-opcache"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button></div>
+  <pre class="cfg" id="c-opcache"></pre>
+  <div class="note" id="opcache-note"></div>
+</div>
+
+<div class="card">
+  <div class="hdr"><h3>/etc/mysql/mariadb.conf.d/99-tuning.cnf</h3><button data-c="c-maria"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button></div>
+  <pre class="cfg" id="c-maria"></pre>
+  <div class="note">innodb_buffer_pool_size = RAM allouée à la DB. Sur MariaDB ≥ 10.6, la directive innodb_buffer_pool_instances est ignorée et a été retirée. innodb_io_capacity adapté au type de stockage.</div>
+</div>
+
+<script>
+function r(n) { return Math.round(n); }
+
+function update() {
+  const ram = +document.getElementById('ram').value;
+  const cpu = +document.getElementById('cpu').value;
+  const disk = document.getElementById('disk').value;
+  const workload = document.getElementById('workload').value;
+  const dbshare = +document.getElementById('dbshare').value;
+  const phpsize = +document.getElementById('phpsize').value;
+  const phpver = document.getElementById('phpver').value;
+
+  document.getElementById('ram-o').textContent = ram;
+  document.getElementById('cpu-o').textContent = cpu;
+  document.getElementById('phpsize-o').textContent = phpsize;
+
+  const totalMB = ram * 1024;
+  const sysReserve = Math.max(1024, r(totalMB * 0.1));
+  const dbMB = r(totalMB * dbshare / 100);
+  const phpMB = Math.max(512, totalMB - sysReserve - dbMB);
+
+  const maxChildren = Math.max(5, Math.floor(phpMB / phpsize));
+  const startServers = Math.max(2, r(maxChildren * 0.2));
+  const minSpare = Math.max(2, r(maxChildren * 0.1));
+  const maxSpare = Math.max(4, r(maxChildren * 0.3));
+
+  const tpc = 25;
+  const targetWorkers = Math.max(100, maxChildren);
+  const serverLimit = Math.ceil(targetWorkers / tpc);
+  const maxWorkers = serverLimit * tpc;
+  const startSrv = Math.max(4, r(cpu / 2));
+
+  const ioCap = disk === 'nvme' ? 3000 : disk === 'ssd' ? 1500 : 200;
+  const ioCapMax = ioCap * 2;
+  const logFile = Math.min(2048, Math.max(256, r(dbMB * 0.25)));
+  const maxConn = Math.min(500, Math.max(100, r(maxChildren * 1.5)));
+  const ioThreads = Math.min(16, Math.max(4, cpu));
+
+  let opMem, opStr, opFiles, jit, jitBuf, opcacheNote;
+  if (workload === 'wordpress') {
+    opMem = 256; opStr = 32; opFiles = 20000; jit = 'disable'; jitBuf = 0;
+    opcacheNote = 'JIT désactivé : WordPress est I/O-bound (BDD, Redis, HTTP). Gain JIT mesuré sur WP : 1 à 5 %, pour un coût mémoire et des régressions de stabilité.';
+  } else if (workload === 'laravel') {
+    opMem = 384; opStr = 32; opFiles = 30000; jit = 'tracing'; jitBuf = 128;
+    opcacheNote = 'JIT tracing activé : utile sur Laravel pour le code applicatif intensif. À benchmarker avant de pousser en prod.';
+  } else if (workload === 'mixed') {
+    opMem = 512; opStr = 32; opFiles = 40000; jit = 'tracing'; jitBuf = 128;
+    opcacheNote = 'JIT tracing activé. Plusieurs apps → mémoire OPcache généreuse pour éviter les évictions.';
+  } else {
+    opMem = 128; opStr = 16; opFiles = 10000; jit = 'disable'; jitBuf = 0;
+    opcacheNote = 'PHP minimal car le workload est Node.js dominant. La majorité du tuning se fait côté PM2.';
+  }
+
+  let jitLine;
+  if (phpver === '8.4') {
+    jitLine = `opcache.jit=${jit}\nopcache.jit_buffer_size=${jitBuf}M`;
+  } else {
+    jitLine = `opcache.jit=${jit === 'disable' ? '0' : 'tracing'}\nopcache.jit_buffer_size=${jitBuf}M`;
+  }
+
+  document.getElementById('sum').innerHTML = `
+    <div class="stat"><div class="l">PHP-FPM</div><div class="n">${(phpMB/1024).toFixed(1)} Go</div></div>
+    <div class="stat"><div class="l">MariaDB</div><div class="n">${dbMB ? (dbMB/1024).toFixed(1)+' Go' : '—'}</div></div>
+    <div class="stat"><div class="l">Système réservé</div><div class="n">${(sysReserve/1024).toFixed(1)} Go</div></div>
+    <div class="stat"><div class="l">PHP workers</div><div class="n">${maxChildren}</div></div>
+    <div class="stat"><div class="l">Apache workers</div><div class="n">${maxWorkers}</div></div>
+    <div class="stat"><div class="l">Capacité simult.</div><div class="n">${maxWorkers * 3}</div></div>
+  `;
+
+  document.getElementById('c-sysctl').textContent = `# Réseau
+net.core.somaxconn = 65535
+net.core.netdev_max_backlog = 16384
+net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_fin_timeout = 15
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.ip_local_port_range = 1024 65535
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_intvl = 30
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_slow_start_after_idle = 0
+net.ipv4.tcp_congestion_control = bbr
+net.core.default_qdisc = fq
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+
+# Mémoire
+vm.swappiness = 10
+vm.dirty_ratio = 15
+vm.dirty_background_ratio = 5
+vm.overcommit_memory = 1
+vm.vfs_cache_pressure = 50
+
+# Fichiers
+fs.file-max = ${Math.max(2097152, maxWorkers * 1000)}
+fs.nr_open = 1048576
+fs.inotify.max_user_watches = 524288`;
+
+  document.getElementById('c-apache').textContent = `<IfModule mpm_event_module>
+    StartServers              ${startSrv}
+    ServerLimit               ${serverLimit}
+    ThreadLimit               64
+    ThreadsPerChild           ${tpc}
+    MinSpareThreads           ${tpc}
+    MaxSpareThreads           ${tpc * 3}
+    MaxRequestWorkers         ${maxWorkers}
+    MaxConnectionsPerChild    10000
+    AsyncRequestWorkerFactor  2
+</IfModule>
+
+KeepAlive On
+MaxKeepAliveRequests 1000
+KeepAliveTimeout 5
+Timeout 30
+ServerTokens Prod
+ServerSignature Off
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
+    DeflateCompressionLevel 6
+</IfModule>
+
+# HTTP/2
+Protocols h2 h2c http/1.1`;
+
+  document.getElementById('c-phpfpm').textContent = `pm = dynamic
+pm.max_children = ${maxChildren}
+pm.start_servers = ${startServers}
+pm.min_spare_servers = ${minSpare}
+pm.max_spare_servers = ${maxSpare}
+pm.max_requests = 1000
+pm.process_idle_timeout = 30s
+
+pm.status_path = /fpm-status
+ping.path = /fpm-ping
+
+request_slowlog_timeout = 5s
+slowlog = /var/log/php/slowlog-www.log
+request_terminate_timeout = 120s
+
+security.limit_extensions = .php
+
+php_admin_value[memory_limit] = 256M
+php_admin_value[max_execution_time] = 60
+php_admin_value[post_max_size] = 64M
+php_admin_value[upload_max_filesize] = 64M`;
+
+  document.getElementById('c-opcache').textContent = `opcache.enable=1
+opcache.enable_cli=0
+opcache.memory_consumption=${opMem}
+opcache.interned_strings_buffer=${opStr}
+opcache.max_accelerated_files=${opFiles}
+opcache.validate_timestamps=0
+opcache.revalidate_freq=0
+opcache.save_comments=1
+opcache.fast_shutdown=1
+opcache.huge_code_pages=0
+${jitLine}
+
+; APCu
+apc.enabled=1
+apc.shm_size=128M
+apc.ttl=7200
+apc.enable_cli=0
+
+; Realpath cache (php.ini)
+realpath_cache_size=4096K
+realpath_cache_ttl=600`;
+  document.getElementById('opcache-note').textContent = opcacheNote + ' validate_timestamps=0 impose un php-fpm reload ou opcache_reset() après chaque deploy.';
+
+  let maria;
+  if (dbshare > 0) {
+    maria = `[mysqld]
+# === Connexions ===
+max_connections = ${maxConn}
+thread_cache_size = ${r(maxConn / 4)}
+back_log = 500
+wait_timeout = 300
+interactive_timeout = 300
+max_allowed_packet = 64M
+
+# === InnoDB cœur ===
+innodb_buffer_pool_size = ${dbMB}M
+innodb_log_file_size = ${logFile}M
+innodb_log_buffer_size = 64M
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+innodb_file_per_table = 1
+innodb_open_files = 4000
+
+# === I/O (${disk.toUpperCase()}) ===
+innodb_io_capacity = ${ioCap}
+innodb_io_capacity_max = ${ioCapMax}
+innodb_read_io_threads = ${ioThreads}
+innodb_write_io_threads = ${ioThreads}
+innodb_thread_concurrency = 0
+innodb_flush_neighbors = ${disk === 'hdd' ? 1 : 0}
+innodb_lru_scan_depth = 1024
+
+# === Tables temp & cache ===
+table_open_cache = 4000
+table_definition_cache = 2000
+tmp_table_size = 64M
+max_heap_table_size = 64M
+join_buffer_size = 4M
+sort_buffer_size = 4M
+
+# === Query cache désactivé ===
+query_cache_type = 0
+query_cache_size = 0
+
+# === Charset ===
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# === Slow log ===
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time = 1
+log_error = /var/log/mysql/error.log`;
+  } else {
+    maria = '# DB externe : pas de tuning local à appliquer.\n# Configurer le serveur DB dédié séparément.';
+  }
+  document.getElementById('c-maria').textContent = maria;
+}
+
+document.querySelectorAll('input, select').forEach(el => {
+  el.addEventListener('input', update);
+});
+
+document.querySelectorAll('button[data-c]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.c;
+    const txt = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(txt);
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Copié';
+    setTimeout(() => { btn.innerHTML = orig; }, 1500);
+  });
+});
+
+update();
+</script>
